@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String         @id @default(cuid())
+  email             String         @unique
+  password          String
+  firstName         String?
+  lastName          String?
+  phone             String?
+  referralCode      String         @unique @default(cuid())
+  referredBy        String?
+  balance           Float          @default(0)
+  totalDeposits     Float          @default(0)
+  totalWithdrawals  Float          @default(0)
+  totalProfit       Float          @default(0)
+  isVerified        Boolean        @default(false)
+  isActive          Boolean        @default(true)
+  role              String         @default("USER")
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relations
+  investments       Investment[]
+  transactions      Transaction[]
+  referrals         Referral[]     @relation("ReferrerReferrals")
+  referredUsers     Referral[]     @relation("ReferredUserReferrals")
+  watchlist         Watchlist[]
+  tradingBots       TradingBot[]
+  botRequests       BotRequest[]
+}
+
+model Watchlist {
+  id                String         @id @default(cuid())
+  userId            String
+  coinId            String         // CoinGecko coin ID (e.g., "bitcoin")
+  symbol            String         // e.g., "BTC"
+  name              String         // e.g., "Bitcoin"
+  addedAt           DateTime       @default(now())
+
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, coinId])
+}
+
+model InvestmentPlan {
+  id                String         @id @default(cuid())
+  name              String
+  description       String
+  minAmount         Float
+  maxAmount         Float
+  dailyReturnRate   Float          // Percentage (e.g., 2.5 for 2.5%)
+  durationDays      Int
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relations
+  investments       Investment[]
+}
+
+model Investment {
+  id                String            @id @default(cuid())
+  userId            String
+  planId            String
+  amount            Float
+  dailyReturn       Float
+  totalEarned       Float             @default(0)
+  startDate         DateTime          @default(now())
+  endDate           DateTime
+  status            String            @default("ACTIVE")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              InvestmentPlan    @relation(fields: [planId], references: [id])
+}
+
+model Transaction {
+  id                String              @id @default(cuid())
+  userId            String
+  type              String
+  amount            Float
+  method            String?             // e.g., "Bitcoin", "USDT", "Bank Transfer"
+  status            String              @default("PENDING")
+  walletAddress     String?
+  transactionHash   String?
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Referral {
+  id                String         @id @default(cuid())
+  referrerId        String
+  referredUserId    String
+  commission        Float          @default(0)
+  status            String         @default("PENDING")
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relations
+  referrer          User           @relation("ReferrerReferrals", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUser      User           @relation("ReferredUserReferrals", fields: [referredUserId], references: [id], onDelete: Cascade)
+}
+
+model TradingBot {
+  id                String         @id @default(cuid())
+  userId            String
+  name              String
+  strategy          String         // GRID, DCA, MOMENTUM, MEAN_REVERSION
+  status            String         @default("PENDING") // PENDING, ACTIVE, PAUSED, STOPPED
+  
+  // Configuration (set by admin)
+  tradingPair       String         // e.g., "BTC/USDT"
+  investmentAmount  Float          // Capital allocated
+  strategyConfig    String         // Strategy parameters (JSON string)
+  
+  // Performance
+  totalProfit       Float          @default(0)
+  totalTrades       Int            @default(0)
+  
+  // Timestamps
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  activatedAt       DateTime?
+  
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades            BotTrade[]
+  
+  @@index([userId, status])
+}
+
+model BotTrade {
+  id                String         @id @default(cuid())
+  botId             String
+  type              String         // BUY, SELL
+  tradingPair       String
+  amount            Float
+  price             Float
+  total             Float
+  profitLoss        Float?
+  executedAt        DateTime       @default(now())
+  
+  // Relations
+  bot               TradingBot     @relation(fields: [botId], references: [id], onDelete: Cascade)
+  
+  @@index([botId, executedAt])
+}
+
+model BotRequest {
+  id                String         @id @default(cuid())
+  userId            String
+  strategy          String         // Requested strategy
+  message           String?        // User's message/requirements
+  status            String         @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  // Admin response
+  adminNotes        String?
+  respondedAt       DateTime?
+  
+  createdAt         DateTime       @default(now())
+  
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, status])
+}
