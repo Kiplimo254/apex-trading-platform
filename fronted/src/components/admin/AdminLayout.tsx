@@ -10,6 +10,8 @@ import {
     Settings,
     BarChart3,
     LogOut,
+    CreditCard,
+    GraduationCap,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -31,6 +33,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         { path: "/admin/transactions", icon: ArrowLeftRight, label: "Transactions" },
         { path: "/admin/investments", icon: TrendingUp, label: "Investments" },
         { path: "/admin/referrals", icon: UserPlus, label: "Referrals" },
+        { path: "/admin/payment-methods", icon: CreditCard, label: "Payment Methods" },
+        { path: "/admin/mentorship", icon: GraduationCap, label: "Mentorship" },
         { path: "/admin/analytics", icon: BarChart3, label: "Analytics" },
         { path: "/admin/settings", icon: Settings, label: "Settings" },
     ];

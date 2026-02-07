@@ -313,4 +313,106 @@ export class AdminService {
             },
         };
     }
+
+    // User Role Management
+    async updateUserRole(adminId: string, userId: string, newRole: string) {
+        // Validate role
+        const validRoles = ['USER', 'ADMIN', 'SUPER_ADMIN'];
+        if (!validRoles.includes(newRole)) {
+            throw new Error('Invalid role. Must be USER, ADMIN, or SUPER_ADMIN');
+        }
+
+        // Prevent self-role modification
+        if (adminId === userId) {
+            throw new Error('You cannot change your own role');
+        }
+
+        // Get admin and target user
+        const [admin, targetUser] = await Promise.all([
+            prisma.user.findUnique({ where: { id: adminId } }),
+            prisma.user.findUnique({ where: { id: userId } }),
+        ]);
+
+        if (!admin || !targetUser) {
+            throw new Error('User not found');
+        }
+
+        // Authorization checks
+        if (admin.role !== 'SUPER_ADMIN' && newRole === 'SUPER_ADMIN') {
+            throw new Error('Only SUPER_ADMIN can promote users to SUPER_ADMIN');
+        }
+
+        // If demoting a SUPER_ADMIN, ensure at least one remains
+        if (targetUser.role === 'SUPER_ADMIN' && newRole !== 'SUPER_ADMIN') {
+            const superAdminCount = await prisma.user.count({
+                where: { role: 'SUPER_ADMIN' },
+            });
+
+            if (superAdminCount <= 1) {
+                throw new Error('Cannot demote the last SUPER_ADMIN');
+            }
+        }
+
+        // Update the role
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { role: newRole },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                isActive: true,
+            },
+        });
+
+        return updatedUser;
+    }
+
+    async toggleUserStatus(adminId: string, userId: string, isActive: boolean) {
+        // Prevent self-status modification
+        if (adminId === userId) {
+            throw new Error('You cannot change your own account status');
+        }
+
+        // Get target user
+        const targetUser = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!targetUser) {
+            throw new Error('User not found');
+        }
+
+        // Prevent disabling the last SUPER_ADMIN
+        if (!isActive && targetUser.role === 'SUPER_ADMIN') {
+            const activeSuperAdminCount = await prisma.user.count({
+                where: {
+                    role: 'SUPER_ADMIN',
+                    isActive: true,
+                },
+            });
+
+            if (activeSuperAdminCount <= 1) {
+                throw new Error('Cannot disable the last active SUPER_ADMIN');
+            }
+        }
+
+        // Update the status
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { isActive },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                isActive: true,
+            },
+        });
+
+        return updatedUser;
+    }
 }

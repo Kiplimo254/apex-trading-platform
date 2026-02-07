@@ -64,7 +64,7 @@ const TransactionManagement = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                setTransactions(data.data.transactions);
+                setTransactions(data.transactions);
             }
         } catch (error) {
             console.error("Error fetching transactions:", error);

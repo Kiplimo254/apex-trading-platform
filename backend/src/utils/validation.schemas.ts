@@ -7,6 +7,8 @@ export const registerSchema = z.object({
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     phone: z.string().optional(),
+    country: z.string().optional(),
+    countryCode: z.string().optional(),
     referralCode: z.string().optional(),
 });
 

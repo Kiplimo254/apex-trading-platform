@@ -17,6 +17,8 @@ model User {
   firstName         String?
   lastName          String?
   phone             String?
+  country           String?        // Kenya, Botswana, Tanzania, Zimbabwe
+  countryCode       String?        // +254, +267, +255, +263
   referralCode      String         @unique @default(cuid())
   referredBy        String?
   balance           Float          @default(0)
@@ -37,6 +39,9 @@ model User {
   watchlist         Watchlist[]
   tradingBots       TradingBot[]
   botRequests       BotRequest[]
+  portfolio         Portfolio[]
+  trades            Trade[]
+  classRegistrations ClassRegistration[]
 }
 
 model Watchlist {
@@ -180,4 +185,118 @@ model BotRequest {
   user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId, status])
+}
+
+model Portfolio {
+  id                String         @id @default(cuid())
+  userId            String
+  coinId            String         // CoinGecko ID (e.g., "bitcoin")
+  symbol            String         // e.g., "BTC"
+  name              String         // e.g., "Bitcoin"
+  amount            Float          // Quantity held
+  averageBuyPrice   Float          // Average purchase price
+  notes             String?        // Optional user notes
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, coinId])
+  @@index([userId])
+}
+
+model Trade {
+  id                String         @id @default(cuid())
+  userId            String
+  type              String         // BUY, SELL
+  coinId            String         // CoinGecko ID
+  symbol            String
+  name              String
+  amount            Float          // Quantity traded
+  price             Float          // Price per coin
+  total             Float          // Total value (amount * price)
+  fee               Float          @default(0)
+  exchange          String?        // e.g., "Binance", "Coinbase"
+  notes             String?        // User notes
+  tradeDate         DateTime       // When trade occurred
+  
+  createdAt         DateTime       @default(now())
+  
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, tradeDate])
+}
+
+model PaymentMethod {
+  id                String         @id @default(cuid())
+  name              String         @unique // MyZaka, Orange Money, PayPal, USDT
+  type              String         // MOBILE_MONEY, ONLINE_PAYMENT, CRYPTO
+  instructions      String?        // Admin-configurable instructions
+  paypalEmail       String?        // For PayPal only
+  walletAddress     String?        // For crypto payments (USDT, BTC, ETH)
+  isActive          Boolean        @default(true)
+  displayOrder      Int            @default(0)
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model MentorshipClass {
+  id                String              @id @default(cuid())
+  title             String
+  description       String
+  category          String              // Beginner, Intermediate, Advanced
+  instructor        String              // Instructor name
+  
+  // Scheduling
+  scheduledDate     DateTime            // When the class takes place
+  duration          Int                 // Duration in minutes
+  timezone          String              @default("EAT") // East Africa Time
+  
+  // Meeting Details
+  meetingLink       String?             // Zoom/Google Meet link
+  meetingPassword   String?             // Optional meeting password
+  platform          String              @default("Zoom") // Zoom, Google Meet
+  
+  // Pricing
+  fee               Float               @default(0) // Class fee (0 for free)
+  maxParticipants   Int?                // Max number of participants
+  
+  // Status
+  status            String              @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  isActive          Boolean             @default(true)
+  
+  // Media
+  thumbnailUrl      String?
+  
+  registrations     ClassRegistration[]
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model ClassRegistration {
+  id                String              @id @default(cuid())
+  userId            String
+  classId           String
+  
+  // Payment
+  amountPaid        Float
+  paymentStatus     String              @default("PENDING") // PENDING, PAID, REFUNDED
+  transactionId     String?
+  
+  // Attendance
+  attended          Boolean             @default(false)
+  joinedAt          DateTime?
+  
+  user              User                @relation(fields: [userId], references: [id])
+  class             MentorshipClass     @relation(fields: [classId], references: [id])
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@unique([userId, classId])
 }

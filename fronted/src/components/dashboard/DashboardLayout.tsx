@@ -16,6 +16,9 @@ import {
   ChevronDown,
   BarChart3,
   Bot,
+  Briefcase,
+  BookOpen,
+  GraduationCap,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -26,6 +29,10 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: BarChart3, label: "Markets", href: "/dashboard/markets" },
   { icon: Bot, label: "Trading Bots", href: "/dashboard/bots" },
+  { icon: Briefcase, label: "Portfolio", href: "/dashboard/portfolio" },
+  { icon: BookOpen, label: "Trade Journal", href: "/dashboard/trades" },
+  { icon: GraduationCap, label: "Live Classes", href: "/mentorship" },
+  { icon: GraduationCap, label: "My Classes", href: "/my-classes" },
   { icon: Wallet, label: "Investments", href: "/dashboard/investments" },
   { icon: ArrowDownToLine, label: "Deposit", href: "/dashboard/deposit" },
   { icon: ArrowUpFromLine, label: "Withdraw", href: "/dashboard/withdraw" },

@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Mail, Lock, Eye, EyeOff, User, Users } from "lucide-react";
+import { TrendingUp, Mail, Lock, Eye, EyeOff, User, Users, Phone, Globe } from "lucide-react";
 import { authAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,10 +19,31 @@ const Register = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    phone: "",
+    country: "Botswana",
+    countryCode: "+267",
     password: "",
     confirmPassword: "",
     referralCode: referralCode,
   });
+
+  // Country options with codes
+  const countries = [
+    { name: "Botswana", code: "+267" },
+    { name: "Kenya", code: "+254" },
+    { name: "Tanzania", code: "+255" },
+    { name: "Zimbabwe", code: "+263" },
+  ];
+
+  // Handle country change
+  const handleCountryChange = (country: string) => {
+    const selectedCountry = countries.find((c) => c.name === country);
+    setFormData({
+      ...formData,
+      country,
+      countryCode: selectedCountry?.code || "",
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +71,9 @@ const Register = () => {
         password: formData.password,
         firstName,
         lastName,
+        phone: formData.phone,
+        country: formData.country,
+        countryCode: formData.countryCode,
         ...(formData.referralCode && { referralCode: formData.referralCode }),
       });
 
@@ -149,6 +173,51 @@ const Register = () => {
                   }
                   required
                 />
+              </div>
+            </div>
+
+            {/* Country Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+                <select
+                  id="country"
+                  className="w-full h-12 pl-10 pr-4 bg-secondary border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={formData.country}
+                  onChange={(e) => handleCountryChange(e.target.value)}
+                  required
+                >
+                  {countries.map((country) => (
+                    <option key={country.name} value={country.name}>
+                      {country.name} ({country.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Phone Number */}
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <div className="relative flex gap-2">
+                <div className="w-24 h-12 bg-secondary border border-border rounded-md flex items-center justify-center text-muted-foreground font-medium">
+                  {formData.countryCode}
+                </div>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="XX XXX XXXX"
+                    className="pl-10 h-12 bg-secondary border-border"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    required
+                  />
+                </div>
               </div>
             </div>
 

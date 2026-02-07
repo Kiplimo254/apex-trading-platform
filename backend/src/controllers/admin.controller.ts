@@ -128,4 +128,55 @@ export class AdminController {
             res.status(400).json({ error: error.message });
         }
     }
+
+    // User Role Management
+    async updateUserRole(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const adminId = (req.user!.userId || req.user!.id) as string;
+            const userId = req.params.id as string;
+            const { role } = req.body;
+
+            if (!role) {
+                res.status(400).json({ error: 'Role is required' });
+                return;
+            }
+
+            const user = await adminService.updateUserRole(adminId, userId, role);
+            res.status(200).json({
+                success: true,
+                message: 'User role updated successfully',
+                data: user,
+            });
+        } catch (error: any) {
+            res.status(400).json({
+                success: false,
+                error: error.message,
+            });
+        }
+    }
+
+    async toggleUserStatus(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const adminId = (req.user!.userId || req.user!.id) as string;
+            const userId = req.params.id as string;
+            const { isActive } = req.body;
+
+            if (typeof isActive !== 'boolean') {
+                res.status(400).json({ error: 'isActive must be a boolean' });
+                return;
+            }
+
+            const user = await adminService.toggleUserStatus(adminId, userId, isActive);
+            res.status(200).json({
+                success: true,
+                message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+                data: user,
+            });
+        } catch (error: any) {
+            res.status(400).json({
+                success: false,
+                error: error.message,
+            });
+        }
+    }
 }

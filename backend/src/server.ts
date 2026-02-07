@@ -15,6 +15,10 @@ import adminRoutes from './routes/admin.routes';
 import marketRoutes from './routes/market.routes';
 import watchlistRoutes from './routes/watchlist.routes';
 import botRoutes from './routes/bot.routes';
+import portfolioRoutes from './routes/portfolio.routes';
+import tradeRoutes from './routes/trade.routes';
+import paymentMethodRoutes from './routes/payment-method.routes';
+import mentorshipRoutes from './routes/mentorship.routes';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +50,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/markets', marketRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/bots', botRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/trades', tradeRoutes);
+app.use('/api/payment-methods', paymentMethodRoutes);
+app.use('/api/mentorship', mentorshipRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

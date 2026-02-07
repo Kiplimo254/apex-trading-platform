@@ -28,4 +28,8 @@ router.get('/stats', adminController.getPlatformStats.bind(adminController));
 // Referral Management
 router.get('/referrals', adminController.getAllReferrals.bind(adminController));
 
+// User Role Management
+router.patch('/users/:id/role', adminController.updateUserRole.bind(adminController));
+router.patch('/users/:id/status', adminController.toggleUserStatus.bind(adminController));
+
 export default router;
